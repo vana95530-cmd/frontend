@@ -1,11 +1,23 @@
 export interface User {
   user_id: number;
   email: string;
-  full_name: string;
-  phone?: string;
+  full_name: string | null;
+  phone: string | null;
   role: 'user' | 'admin';
   status: 'active' | 'blocked';
   created_at: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  user: User;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  full_name?: string;
+  phone?: string;
 }
 
 export interface Advertisement {
