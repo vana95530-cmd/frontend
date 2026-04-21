@@ -9,6 +9,8 @@ import LoginPage from './pages/Login/LoginPage';
 import RegisterPage from './pages/Register/RegisterPage';
 import ProfilePage from './pages/Profile/ProfilePage';
 import AdminDashboard from './pages/Admin/AdminDashboard';
+import AdDetailPage from './pages/AdDetail/AdDetailPage';
+import AdFormPage from './pages/AdForm/AdFormPage';
 
 function App() {
   return (
@@ -19,14 +21,19 @@ function App() {
             <Route index element={<HomePage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
-            
+
             <Route element={<PrivateRoute />}>
               <Route path="profile" element={<ProfilePage />} />
             </Route>
-            
+
             <Route element={<AdminRoute />}>
               <Route path="admin/*" element={<AdminDashboard />} />
             </Route>
+          </Route>
+          <Route path="ads/:id" element={<AdDetailPage />} />
+          <Route element={<PrivateRoute />}>
+            <Route path="ads/create" element={<AdFormPage />} />
+            <Route path="ads/:id/edit" element={<AdFormPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

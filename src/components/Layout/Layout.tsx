@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
   AppBar, Toolbar, Typography, Button, Container, Box
 } from '@mui/material';
-import HomeIcon from '@mui/icons-material/Home';
+import { Home as HomeIcon } from '@mui/icons-material';
 
 const Layout = () => {
   const { user, logout } = useAuth();

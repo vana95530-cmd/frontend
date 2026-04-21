@@ -20,26 +20,6 @@ export interface RegisterData {
   phone?: string;
 }
 
-export interface Advertisement {
-  ad_id: number;
-  user_id: number;
-  title: string;
-  description: string;
-  property_type: 'apartment' | 'house' | 'commercial' | 'land';
-  district: string;
-  address?: string;
-  price: number;
-  area?: number;
-  rooms?: number;
-  floor?: number;
-  total_floors?: number;
-  status: 'pending' | 'active' | 'rejected' | 'sold';
-  created_at: string;
-  updated_at: string;
-  photos: AdPhoto[];
-  author?: User; // інформація про продавця
-}
-
 export interface AdPhoto {
   photo_id: number;
   ad_id: number;
@@ -86,4 +66,59 @@ export interface AdFilterParams {
   max_area?: number;
   rooms?: number;
   status?: string; // тільки для адміна
+}
+
+export interface AdPhoto {
+  photo_id: number;
+  url: string;
+  is_main: boolean;
+}
+
+export interface Advertisement {
+  ad_id: number;
+  user_id: number;
+  title: string;
+  description: string;
+  property_type: 'apartment' | 'house' | 'commercial' | 'land';
+  district: string;
+  address?: string;
+  price: number;
+  area?: number;
+  rooms?: number;
+  floor?: number;
+  total_floors?: number;
+  status: 'pending' | 'active' | 'rejected' | 'sold';
+  created_at: string;
+  updated_at?: string;
+  author?: {
+    user_id: number;
+    full_name: string;
+    email: string;
+    phone?: string;
+  };
+  photos: AdPhoto[];
+  main_photo?: string; // для списку
+}
+
+export interface AdFilterParams {
+  property_type?: string;
+  district?: string;
+  min_price?: number;
+  max_price?: number;
+  min_area?: number;
+  max_area?: number;
+  rooms?: number;
+}
+
+export interface CreateAdData {
+  title: string;
+  description: string;
+  property_type: string;
+  district: string;
+  address?: string;
+  price: number;
+  area?: number;
+  rooms?: number;
+  floor?: number;
+  total_floors?: number;
 }
