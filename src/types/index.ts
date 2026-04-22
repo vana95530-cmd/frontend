@@ -39,13 +39,6 @@ export interface Message {
   receiver?: User;
 }
 
-export interface SearchHistoryItem {
-  search_id: number;
-  user_id: number;
-  query_params: Record<string, any>;
-  created_at: string;
-}
-
 export interface AdminLog {
   log_id: number;
   admin_id: number;
@@ -121,4 +114,19 @@ export interface CreateAdData {
   rooms?: number;
   floor?: number;
   total_floors?: number;
+}
+
+export interface SearchHistoryItem {
+  search_id: number;
+  query_params: AdFilterParams;
+  created_at: string;
+}
+
+export interface FavoriteAd {
+  ad_id: number;
+  title: string;
+  price: number;
+  district: string;
+  main_photo?: string;
+  status: string;
 }

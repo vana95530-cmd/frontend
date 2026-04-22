@@ -6,6 +6,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { adService } from '../../services/adService';
 import type { Advertisement, AdFilterParams } from '../../types';
+import { userService } from '../../services/userService';
 
 const districts = ['Центр', 'Придніпровський', 'Соснівський', 'Митниця', 'Дахнівка'];
 const propertyTypes = [
@@ -44,6 +45,10 @@ const HomePage = () => {
     try {
       const data = await adService.getAds(filters);
       setAds(data);
+      // Зберігаємо історію пошуку тільки якщо фільтри не порожні (опціонально)
+      if (Object.values(filters).some(v => v !== undefined && v !== '')) {
+        userService.saveSearchHistory(filters).catch(console.error);
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Помилка завантаження оголошень');
     } finally {

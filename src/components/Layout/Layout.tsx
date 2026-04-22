@@ -26,6 +26,9 @@ const Layout = () => {
               <Button color="inherit" component={RouterLink} to="/profile">
                 Мій кабінет
               </Button>
+              <Button color="inherit" component={RouterLink} to="/ads/create">
+                Створити оголошення
+              </Button>
               {user.role === 'admin' && (
                 <Button color="inherit" component={RouterLink} to="/admin">
                   Адмін-панель
