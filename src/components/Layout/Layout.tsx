@@ -1,12 +1,25 @@
+import { useState, useEffect } from 'react';
 import { Outlet, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   AppBar, Toolbar, Typography, Button, Container, Box
 } from '@mui/material';
+import { chatService } from '../../services/chatService';
+import ChatWidget from '../ChatWidget/ChatWidget';
 import { Home as HomeIcon } from '@mui/icons-material';
 
 const Layout = () => {
   const { user, logout } = useAuth();
+  const [adminId, setAdminId] = useState<number | null>(null);
+  const [adminChatOpen, setAdminChatOpen] = useState(false);
+
+  useEffect(() => {
+    if (user && user.role !== 'admin') {
+      chatService.getAdminId()
+        .then(id => setAdminId(id))
+        .catch(console.error);
+    }
+  }, [user]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -23,15 +36,20 @@ const Layout = () => {
           </Typography>
           {user ? (
             <>
-              <Button color="inherit" component={RouterLink} to="/profile">
-                Мій кабінет
-              </Button>
               <Button color="inherit" component={RouterLink} to="/ads/create">
                 Створити оголошення
+              </Button>
+              <Button color="inherit" component={RouterLink} to="/profile">
+                Мій кабінет
               </Button>
               {user.role === 'admin' && (
                 <Button color="inherit" component={RouterLink} to="/admin">
                   Адмін-панель
+                </Button>
+              )}
+              {user.role !== 'admin' && (
+                <Button color="inherit" onClick={() => setAdminChatOpen(true)}>
+                  Чат з адміністратором
                 </Button>
               )}
               <Button color="inherit" onClick={logout}>
@@ -58,6 +76,16 @@ const Layout = () => {
           © {new Date().getFullYear()} Нерухомість Черкаси. Дипломний проект.
         </Typography>
       </Box>
+
+      {/* Чат-віджет для адміністратора */}
+      {adminChatOpen && adminId && user && (
+        <ChatWidget
+          partnerId={adminId}
+          adId={0}
+          partnerName="Адміністратор"
+          onClose={() => setAdminChatOpen(false)}
+        />
+      )}
     </Box>
   );
 };

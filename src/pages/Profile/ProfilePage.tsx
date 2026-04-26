@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Container, Typography, Tabs, Tab, Box, CircularProgress,
   Card, CardContent, CardActions, Button, Chip, Grid, TextField, Dialog, DialogTitle, DialogContent, DialogActions,
-  IconButton, List, ListItem, ListItemText,
+  IconButton, List, ListItem, ListItemText, Paper
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -10,6 +10,9 @@ import { adService } from '../../services/adService';
 import { userService } from '../../services/userService';
 import type { Advertisement, SearchHistoryItem, FavoriteAd } from '../../types';
 import { Delete as DeleteIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
+import { chatService } from '../../services/chatService';
+import ChatWidget from '../../components/ChatWidget/ChatWidget';
+import type { ChatInfo } from '../../types';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -44,10 +47,30 @@ const ProfilePage = () => {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [passwordData, setPasswordData] = useState({ old: '', new: '', confirm: '' });
 
+  const [chats, setChats] = useState<ChatInfo[]>([]);
+  const [loadingChats, setLoadingChats] = useState(false);
+  const [activeChatPartner, setActiveChatPartner] = useState<number | null>(null);
+  const [activeChatAdId, setActiveChatAdId] = useState<number>(0);
+  const [activeChatName, setActiveChatName] = useState<string>('');
+  const [chatWidgetOpen, setChatWidgetOpen] = useState(false);
+
+  const fetchChats = async () => {
+    setLoadingChats(true);
+    try {
+      const data = await chatService.getChats();
+      setChats(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingChats(false);
+    }
+  };
+
   useEffect(() => {
     if (tabValue === 0) fetchMyAds();
     if (tabValue === 1) fetchSearchHistory();
     if (tabValue === 2) fetchFavorites();
+    if (tabValue === 4) fetchChats();
   }, [tabValue]);
 
   const fetchMyAds = async () => {
@@ -135,6 +158,7 @@ const ProfilePage = () => {
     } catch (err: any) {
       alert(err.response?.data?.error || 'Помилка зміни паролю');
     }
+
   };
 
   if (!user) return null;
@@ -148,6 +172,7 @@ const ProfilePage = () => {
           <Tab label="Історія пошуку" />
           <Tab label="Обране" />
           <Tab label="Налаштування" />
+          <Tab label="Повідомлення" />
         </Tabs>
       </Box>
 
@@ -223,8 +248,8 @@ const ProfilePage = () => {
           <Dialog open={editProfileOpen} onClose={() => setEditProfileOpen(false)}>
             <DialogTitle>Редагувати профіль</DialogTitle>
             <DialogContent>
-              <TextField label="Повне ім'я" fullWidth margin="dense" value={profileData.full_name} onChange={e => setProfileData({...profileData, full_name: e.target.value})} />
-              <TextField label="Телефон" fullWidth margin="dense" value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} />
+              <TextField label="Повне ім'я" fullWidth margin="dense" value={profileData.full_name} onChange={e => setProfileData({ ...profileData, full_name: e.target.value })} />
+              <TextField label="Телефон" fullWidth margin="dense" value={profileData.phone} onChange={e => setProfileData({ ...profileData, phone: e.target.value })} />
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setEditProfileOpen(false)}>Скасувати</Button>
@@ -235,9 +260,9 @@ const ProfilePage = () => {
           <Dialog open={changePasswordOpen} onClose={() => setChangePasswordOpen(false)}>
             <DialogTitle>Зміна паролю</DialogTitle>
             <DialogContent>
-              <TextField label="Поточний пароль" type="password" fullWidth margin="dense" value={passwordData.old} onChange={e => setPasswordData({...passwordData, old: e.target.value})} />
-              <TextField label="Новий пароль" type="password" fullWidth margin="dense" value={passwordData.new} onChange={e => setPasswordData({...passwordData, new: e.target.value})} />
-              <TextField label="Підтвердження" type="password" fullWidth margin="dense" value={passwordData.confirm} onChange={e => setPasswordData({...passwordData, confirm: e.target.value})} />
+              <TextField label="Поточний пароль" type="password" fullWidth margin="dense" value={passwordData.old} onChange={e => setPasswordData({ ...passwordData, old: e.target.value })} />
+              <TextField label="Новий пароль" type="password" fullWidth margin="dense" value={passwordData.new} onChange={e => setPasswordData({ ...passwordData, new: e.target.value })} />
+              <TextField label="Підтвердження" type="password" fullWidth margin="dense" value={passwordData.confirm} onChange={e => setPasswordData({ ...passwordData, confirm: e.target.value })} />
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setChangePasswordOpen(false)}>Скасувати</Button>
@@ -246,6 +271,42 @@ const ProfilePage = () => {
           </Dialog>
         </Box>
       </TabPanel>
+      <TabPanel value={tabValue} index={4}>
+        {loadingChats ? <CircularProgress /> : (
+          <>
+            <Typography variant="h6" gutterBottom>Ваші чати</Typography>
+            {chats.length === 0 ? (
+              <Typography>Немає активних чатів</Typography>
+            ) : (
+              chats.map(chat => (
+                <Paper
+                  key={`${chat.partner_id}_${chat.ad_id}`}
+                  sx={{ p: 2, mb: 1, cursor: 'pointer' }}
+                  onClick={() => {
+                    setActiveChatPartner(chat.partner_id);
+                    setActiveChatAdId(chat.ad_id);
+                    setActiveChatName(chat.partner_name);
+                    setChatWidgetOpen(true);
+                  }}
+                >
+                  <Typography variant="subtitle1">{chat.partner_name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {chat.last_message.substring(0, 50)}...
+                  </Typography>
+                </Paper>
+              ))
+            )}
+          </>
+        )}
+      </TabPanel>
+      {chatWidgetOpen && (
+        <ChatWidget
+          partnerId={activeChatPartner!}
+          adId={activeChatAdId}
+          partnerName={activeChatName}
+          onClose={() => setChatWidgetOpen(false)}
+        />
+      )}
     </Container>
   );
 };

@@ -130,3 +130,20 @@ export interface FavoriteAd {
   main_photo?: string;
   status: string;
 }
+
+export interface Message {
+  message_id: number;
+  sender_id: number;
+  receiver_id: number;
+  content: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface ChatInfo {
+  partner_id: number;
+  partner_name: string;
+  ad_id: number;
+  last_message: string;
+  last_time: string;
+}

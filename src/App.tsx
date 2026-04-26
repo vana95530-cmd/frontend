@@ -19,6 +19,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
+            <Route path="ads/:id" element={<AdDetailPage />} /> 
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
 

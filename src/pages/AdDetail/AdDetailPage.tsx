@@ -7,6 +7,7 @@ import {
 import { adService } from '../../services/adService';
 import { useAuth } from '../../context/AuthContext';
 import type { Advertisement } from '../../types';
+import ChatWidget from '../../components/ChatWidget/ChatWidget';
 
 const AdDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +17,7 @@ const AdDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mainPhoto, setMainPhoto] = useState<string>('');
+  const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -105,7 +107,7 @@ const AdDetailPage = () => {
           </Typography>
           <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
             {user && !isOwner && (
-              <Button variant="contained" onClick={() => navigate(`/chat/${ad.ad_id}`)}>
+              <Button variant="contained" onClick={() => setChatOpen(true)}>
                 Написати продавцю
               </Button>
             )}
@@ -127,6 +129,14 @@ const AdDetailPage = () => {
           </Box>
         </Grid>
       </Grid>
+      {chatOpen && ad && (
+        <ChatWidget
+          partnerId={ad.user_id}
+          adId={ad.ad_id}
+          partnerName={ad.author?.full_name || 'Продавець'}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
     </Container>
   );
 };
