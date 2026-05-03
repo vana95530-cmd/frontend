@@ -46,7 +46,6 @@ const HomePage = () => {
     try {
       const data = await adService.getAds(filters);
       setAds(data);
-      // Зберігаємо історію пошуку тільки якщо фільтри не порожні (опціонально)
       if (Object.values(filters).some(v => v !== undefined && v !== '')) {
         userService.saveSearchHistory(filters).catch(console.error);
       }
@@ -95,119 +94,57 @@ const HomePage = () => {
   const totalPages = Math.ceil(ads.length / itemsPerPage);
 
   return (
-    <>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Нерухомість у Черкасах
-        </Typography>
-        <Box sx={{ mb: 4, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+    <Container maxWidth={false} disableGutters sx={{ px: 3, py: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Нерухомість у Черкасах
+      </Typography>
+
+      {/* Фільтри – без змін */}
+      <Box sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={6} md={2}>
-            <TextField
-              select
-              fullWidth
-              label="Тип нерухомості"
-              value={filters.property_type}
-              onChange={(e) => handleFilterChange('property_type', e.target.value)}
-            >
+            <TextField select fullWidth label="Тип нерухомості" value={filters.property_type}
+              onChange={(e) => handleFilterChange('property_type', e.target.value)}>
               <MenuItem value="">Всі</MenuItem>
-              {propertyTypes.map(opt => (
-                <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-              ))}
+              {propertyTypes.map(opt => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
             </TextField>
           </Grid>
           <Grid item xs={12} sm={6} md={2}>
-            <TextField
-              select
-              fullWidth
-              label="Район"
-              value={filters.district}
-              onChange={(e) => handleFilterChange('district', e.target.value)}
-            >
+            <TextField select fullWidth label="Район" value={filters.district}
+              onChange={(e) => handleFilterChange('district', e.target.value)}>
               <MenuItem value="">Всі</MenuItem>
-              {districts.map(d => (
-                <MenuItem key={d} value={d}>{d}</MenuItem>
-              ))}
+              {districts.map(d => <MenuItem key={d} value={d}>{d}</MenuItem>)}
             </TextField>
           </Grid>
           <Grid item xs={12} sm={6} md={2}>
-            <TextField
-              select
-              fullWidth
-              label="Кількість кімнат"
-              value={filters.rooms || ''}
-              onChange={(e) => handleFilterChange('rooms', e.target.value ? Number(e.target.value) : undefined)}
-            >
+            <TextField select fullWidth label="Кількість кімнат" value={filters.rooms || ''}
+              onChange={(e) => handleFilterChange('rooms', e.target.value ? Number(e.target.value) : undefined)}>
               <MenuItem value="">Будь-яка</MenuItem>
-              {[1,2,3,4,5].map(n => (
-                <MenuItem key={n} value={n}>{n}</MenuItem>
-              ))}
+              {[1,2,3,4,5].map(n => <MenuItem key={n} value={n}>{n}</MenuItem>)}
             </TextField>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={3}>
             <Typography gutterBottom>Ціна, $</Typography>
-            <Slider
-              value={priceRange}
-              onChange={handlePriceChange}
-              valueLabelDisplay="auto"
-              min={0}
-              max={200000}
-              step={1000}
-            />
+            <Slider value={priceRange} onChange={handlePriceChange} valueLabelDisplay="auto" min={0} max={200000} step={1000} />
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <TextField
-                size="small"
-                value={priceRange[0]}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setPriceRange([val, priceRange[1]]);
-                  handleFilterChange('min_price', val);
-                }}
-                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
-              />
-              <TextField
-                size="small"
-                value={priceRange[1]}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setPriceRange([priceRange[0], val]);
-                  handleFilterChange('max_price', val);
-                }}
-                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
-              />
+              <TextField size="small" value={priceRange[0]}
+                onChange={(e) => { const val = Number(e.target.value); setPriceRange([val, priceRange[1]]); handleFilterChange('min_price', val); }}
+                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
+              <TextField size="small" value={priceRange[1]}
+                onChange={(e) => { const val = Number(e.target.value); setPriceRange([priceRange[0], val]); handleFilterChange('max_price', val); }}
+                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
             </Box>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={3}>
             <Typography gutterBottom>Площа, м²</Typography>
-            <Slider
-              value={areaRange}
-              onChange={handleAreaChange}
-              valueLabelDisplay="auto"
-              min={0}
-              max={200}
-              step={5}
-            />
+            <Slider value={areaRange} onChange={handleAreaChange} valueLabelDisplay="auto" min={0} max={200} step={5} />
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <TextField
-                size="small"
-                value={areaRange[0]}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setAreaRange([val, areaRange[1]]);
-                  handleFilterChange('min_area', val);
-                }}
-                InputProps={{ endAdornment: <InputAdornment position="end">м²</InputAdornment> }}
-              />
-              <TextField
-                size="small"
-                value={areaRange[1]}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setAreaRange([areaRange[0], val]);
-                  handleFilterChange('max_area', val);
-                }}
-                InputProps={{ endAdornment: <InputAdornment position="end">м²</InputAdornment> }}
-              />
+              <TextField size="small" value={areaRange[0]}
+                onChange={(e) => { const val = Number(e.target.value); setAreaRange([val, areaRange[1]]); handleFilterChange('min_area', val); }}
+                InputProps={{ endAdornment: <InputAdornment position="end">м²</InputAdornment> }} />
+              <TextField size="small" value={areaRange[1]}
+                onChange={(e) => { const val = Number(e.target.value); setAreaRange([areaRange[0], val]); handleFilterChange('max_area', val); }}
+                InputProps={{ endAdornment: <InputAdornment position="end">м²</InputAdornment> }} />
             </Box>
           </Grid>
           <Grid item xs={12}>
@@ -216,56 +153,69 @@ const HomePage = () => {
         </Grid>
       </Box>
 
-      {/* Список оголошень */}
-      {loading ? (
-        <Box display="flex" justifyContent="center" my={4}><CircularProgress /></Box>
-      ) : error ? (
-        <Alert severity="error">{error}</Alert>
-      ) : ads.length === 0 ? (
-        <Typography variant="h6" align="center">Немає оголошень</Typography>
-      ) : (
-        <>
-          <Grid container spacing={3}>
-            {paginatedAds.map(ad => (
-              <Grid item xs={12} sm={6} md={4} key={ad.ad_id}>
-                <Card>
-                  <CardActionArea onClick={() => navigate(`/ads/${ad.ad_id}`)}>
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={ad.main_photo ? `http://localhost:5000${ad.main_photo}` : '/placeholder.jpg'}
-                      alt={ad.title}
-                    />
-                    <CardContent>
-                      <Typography gutterBottom variant="h6" component="div">
-                        {ad.title}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {ad.property_type === 'apartment' ? 'Квартира' : ad.property_type} • {ad.district}
-                      </Typography>
-                      <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
-                        ${ad.price.toLocaleString()}
-                      </Typography>
-                      <Typography variant="body2">
-                        {ad.area} м² • {ad.rooms} кімн.
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
+      {/* Горизонтальний блок: список + карта */}
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+        {/* Ліва панель – список (прокручується, якщо багато) */}
+        <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
+          {loading ? (
+            <Box display="flex" justifyContent="center" my={4}><CircularProgress /></Box>
+          ) : error ? (
+            <Alert severity="error">{error}</Alert>
+          ) : ads.length === 0 ? (
+            <Typography variant="h6" align="center">Немає оголошень</Typography>
+          ) : (
+            <>
+              <Grid container spacing={2}>
+                {paginatedAds.map(ad => (
+                  <Grid item xs={12} key={ad.ad_id}>
+                    <Card>
+                      <CardActionArea onClick={() => navigate(`/ads/${ad.ad_id}`)}>
+                        <Grid container>
+                          <Grid item xs={4}>
+                            <CardMedia
+                              component="img"
+                              height="140"
+                              image={ad.main_photo ? `http://localhost:5000${ad.main_photo}` : '/placeholder.jpg'}
+                              alt={ad.title}
+                            />
+                          </Grid>
+                          <Grid item xs={8}>
+                            <CardContent>
+                              <Typography gutterBottom variant="h6" component="div">
+                                {ad.title}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {ad.property_type === 'apartment' ? 'Квартира' : ad.property_type} • {ad.district}
+                              </Typography>
+                              <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
+                                ${ad.price.toLocaleString()}
+                              </Typography>
+                              <Typography variant="body2">
+                                {ad.area} м² • {ad.rooms} кімн.
+                              </Typography>
+                            </CardContent>
+                          </Grid>
+                        </Grid>
+                      </CardActionArea>
+                    </Card>
+                  </Grid>
+                ))}
               </Grid>
-            ))}
-          </Grid>
-          {totalPages > 1 && (
-            <Box display="flex" justifyContent="center" mt={4}>
-              <Pagination count={totalPages} page={page} onChange={(_, val) => setPage(val)} color="primary" />
-            </Box>
+              {totalPages > 1 && (
+                <Box display="flex" justifyContent="center" mt={2} mb={2}>
+                  <Pagination count={totalPages} page={page} onChange={(_, val) => setPage(val)} color="primary" />
+                </Box>
+              )}
+            </>
           )}
-        </>
-      )}
-      </Container>
-      <MapView />
+        </Box>
 
-    </>
+        {/* Права панель – карта (не змінено код MapView, лише контейнер) */}
+        <Box sx={{ width: '45%', position: 'sticky', top: 16 }}>
+          <MapView />
+        </Box>
+      </Box>
+    </Container>
   );
 };
 
