@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Outlet, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
-  AppBar, Toolbar, Typography, Button, Container, Box
+  AppBar, Toolbar, Typography, Button, Container, Box,
+  IconButton
 } from '@mui/material';
 import { chatService } from '../../services/chatService';
 import ChatWidget from '../ChatWidget/ChatWidget';
@@ -25,7 +26,9 @@ const Layout = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="static">
         <Toolbar>
-          <HomeIcon sx={{ mr: 1 }} />
+          <IconButton component={RouterLink} to="/" color="inherit" sx={{ mr: 1 }}>
+            <HomeIcon />
+          </IconButton>
           <Typography
             variant="h6"
             component={RouterLink}

@@ -1,13 +1,10 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 
-// Фікс іконок (залишаємо без змін)
-import iconUrl from 'leaflet/dist/images/marker-icon.png';
-import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
-
+// Фікс іконок Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -20,16 +17,15 @@ L.Icon.Default.mergeOptions({
   shadowSize: [41, 41],
 });
 
-// Оновлений інтерфейс з опціональними полями
 interface AdLocation {
   ad_id: number;
   title: string;
   price: number;
-  area?: number | null;      // тепер не обов’язкове
-  rooms?: number | null;     // тепер не обов’язкове
+  area?: number | null;
+  rooms?: number | null;
   district: string;
-  latitude?: number | null;  // може бути відсутнім
-  longitude?: number | null; // може бути відсутнім
+  latitude?: number | null;
+  longitude?: number | null;
   property_type: string;
 }
 
@@ -38,6 +34,8 @@ interface MapViewProps {
 }
 
 const MapView: React.FC<MapViewProps> = ({ ads }) => {
+  const navigate = useNavigate();
+
   return (
     <Box sx={{ height: '100%', width: '100%', borderRadius: 2, overflow: 'hidden' }}>
       <MapContainer
@@ -54,12 +52,23 @@ const MapView: React.FC<MapViewProps> = ({ ads }) => {
           .map((ad) => (
             <Marker key={ad.ad_id} position={[ad.latitude!, ad.longitude!]}>
               <Popup>
-                <b>{ad.title}</b><br />
-                ${ad.price.toLocaleString()}<br />
-                {ad.area != null && `${ad.area} м², `}
-                {ad.rooms != null && `${ad.rooms} кімн.`}
-                <br />
-                {ad.district}
+                <div style={{ minWidth: 150 }}>
+                  <b>{ad.title}</b><br />
+                  ${ad.price.toLocaleString()}<br />
+                  {ad.area != null && `${ad.area} м², `}
+                  {ad.rooms != null && `${ad.rooms} кімн.`}
+                  <br />
+                  {ad.district}
+                  <br />
+                  <Button
+                    variant="contained"
+                    size="small"
+                    sx={{ mt: 1 }}
+                    onClick={() => navigate(`/ads/${ad.ad_id}`)}
+                  >
+                    Переглянути
+                  </Button>
+                </div>
               </Popup>
             </Marker>
           ))}

@@ -19,7 +19,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
-            <Route path="ads/:id" element={<AdDetailPage />} /> 
+            <Route path="ads/:id" element={<AdDetailPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
 
@@ -31,7 +31,7 @@ function App() {
               <Route path="admin/*" element={<AdminDashboard />} />
             </Route>
           </Route>
-          <Route path="ads/:id" element={<AdDetailPage />} />
+
           <Route element={<PrivateRoute />}>
             <Route path="ads/create" element={<AdFormPage />} />
             <Route path="ads/:id/edit" element={<AdFormPage />} />

@@ -3,7 +3,7 @@ import {
   Container, Card, Grid, CardMedia, CardContent, Typography, CardActionArea,
   TextField, MenuItem, Button, Box, Slider, InputAdornment, Pagination, CircularProgress, Alert
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { adService } from '../../services/adService';
 import type { Advertisement, AdFilterParams } from '../../types';
 import { userService } from '../../services/userService';
@@ -19,6 +19,7 @@ const propertyTypes = [
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [ads, setAds] = useState<Advertisement[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +36,40 @@ const HomePage = () => {
   const [areaRange, setAreaRange] = useState<number[]>([0, 200]);
   const [page, setPage] = useState(1);
   const itemsPerPage = 9;
+
+  // Обробка параметрів пошуку з історії
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.searchParams) {
+      const params = state.searchParams;
+      const newFilters: AdFilterParams = {
+        property_type: params.property_type || '',
+        district: params.district || '',
+        min_price: params.min_price,
+        max_price: params.max_price,
+        min_area: params.min_area,
+        max_area: params.max_area,
+        rooms: params.rooms,
+      };
+      setFilters(newFilters);
+      if (params.min_price !== undefined && params.max_price !== undefined) {
+        setPriceRange([params.min_price, params.max_price]);
+      } else if (params.min_price !== undefined) {
+        setPriceRange([params.min_price, priceRange[1]]);
+      } else if (params.max_price !== undefined) {
+        setPriceRange([priceRange[0], params.max_price]);
+      }
+      if (params.min_area !== undefined && params.max_area !== undefined) {
+        setAreaRange([params.min_area, params.max_area]);
+      } else if (params.min_area !== undefined) {
+        setAreaRange([params.min_area, areaRange[1]]);
+      } else if (params.max_area !== undefined) {
+        setAreaRange([areaRange[0], params.max_area]);
+      }
+      // Очищаємо state, щоб при оновленні сторінки не застосовувалось знову
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     fetchAds();
@@ -99,7 +134,6 @@ const HomePage = () => {
         Нерухомість у Черкасах
       </Typography>
 
-      {/* Фільтри – без змін */}
       <Box sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={6} md={2}>
@@ -153,9 +187,7 @@ const HomePage = () => {
         </Grid>
       </Box>
 
-      {/* Горизонтальний блок: список + карта */}
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-        {/* Ліва панель – список (прокручується, якщо багато) */}
         <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
           {loading ? (
             <Box display="flex" justifyContent="center" my={4}><CircularProgress /></Box>
@@ -210,7 +242,6 @@ const HomePage = () => {
           )}
         </Box>
 
-        {/* Права панель – карта (не змінено код MapView, лише контейнер) */}
         <Box sx={{
           width: '45%',
           position: 'sticky',

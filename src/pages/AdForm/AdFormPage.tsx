@@ -139,7 +139,13 @@ const AdFormPage = () => {
             <TextField fullWidth label="Адреса" name="address" value={formData.address} onChange={handleChange} />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Ціна, $" name="price" type="number" value={formData.price} onChange={handleNumberChange} required />
+            <TextField fullWidth label="Ціна, $" name="price" type="number" value={formData.price} onChange={handleNumberChange} required
+              inputProps={{ min: 0 }}
+              onKeyDown={(e) => {
+                if (e.key === '-' || e.key === 'e' || e.key === '+') {
+                  e.preventDefault();
+                }
+              }} />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField fullWidth label="Площа, м²" name="area" type="number" value={formData.area || ''} onChange={handleNumberChange} />

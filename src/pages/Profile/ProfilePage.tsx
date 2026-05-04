@@ -129,12 +129,59 @@ const ProfilePage = () => {
   };
 
   const handleApplySearchParams = (params: any) => {
-    const query = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && v !== '') query.append(k, String(v));
-    });
-    navigate(`/?${query.toString()}`);
+    // Передаємо параметри через state у HomePage
+    navigate('/', { state: { searchParams: params } });
   };
+
+  // ... всередині компонента, де TabPanel для історії пошуку
+  <TabPanel value={tabValue} index={1}>
+    {loadingHistory ? <CircularProgress /> : (
+      <List>
+        {searchHistory.length === 0 ? (
+          <Typography>Немає збережених пошуків</Typography>
+        ) : (
+          searchHistory.map(item => {
+            const p = item.query_params;
+            const parts = [];
+            if (p.property_type) {
+              const typeMap: any = { apartment: 'Квартира', house: 'Будинок', commercial: 'Комерційна', land: 'Земля' };
+              parts.push(typeMap[p.property_type] || p.property_type);
+            }
+            if (p.district) parts.push(p.district);
+            if (p.min_price !== undefined || p.max_price !== undefined) {
+              const min = p.min_price != null ? `$${p.min_price.toLocaleString()}` : '$0';
+              const max = p.max_price != null ? `$${p.max_price.toLocaleString()}` : '...';
+              parts.push(`${min} – ${max}`);
+            }
+            if (p.min_area !== undefined || p.max_area !== undefined) {
+              const minA = p.min_area != null ? `${p.min_area} м²` : '0 м²';
+              const maxA = p.max_area != null ? `${p.max_area} м²` : '...';
+              parts.push(`${minA} – ${maxA}`);
+            }
+            if (p.rooms) parts.push(`${p.rooms} кімн.`);
+
+            const displayText = parts.join(', ') || 'Без параметрів';
+
+            return (
+              <ListItem
+                key={item.search_id}
+                secondaryAction={
+                  <IconButton onClick={() => handleApplySearchParams(item.query_params)}>
+                    <VisibilityIcon />
+                  </IconButton>
+                }
+              >
+                <ListItemText
+                  primary={displayText}
+                  secondary={new Date(item.created_at).toLocaleString()}
+                />
+              </ListItem>
+            );
+          })
+        )}
+      </List>
+    )}
+  </TabPanel>
 
   const handleUpdateProfile = async () => {
     try {
