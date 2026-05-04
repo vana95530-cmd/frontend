@@ -20,13 +20,6 @@ export interface RegisterData {
   phone?: string;
 }
 
-export interface AdPhoto {
-  photo_id: number;
-  ad_id: number;
-  photo_url: string;
-  is_main: boolean;
-}
-
 export interface Message {
   message_id: number;
   sender_id: number;
@@ -59,12 +52,6 @@ export interface AdFilterParams {
   max_area?: number;
   rooms?: number;
   status?: string; // тільки для адміна
-}
-
-export interface AdPhoto {
-  photo_id: number;
-  url: string;
-  is_main: boolean;
 }
 
 export interface Advertisement {
@@ -148,4 +135,10 @@ export interface ChatInfo {
   ad_id: number;
   last_message: string;
   last_time: string;
+}
+
+export interface AdPhoto {
+  photo_id: number;
+  url: string;
+  is_main: boolean;
 }

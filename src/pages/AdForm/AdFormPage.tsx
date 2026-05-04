@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Container, Typography, Grid, TextField, Button, MenuItem, Box, Alert, CircularProgress
+  Container, Typography, Grid, TextField, Button, MenuItem, Box, Alert, CircularProgress,
+  IconButton, Chip
 } from '@mui/material';
+import { Delete as DeleteIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { adService } from '../../services/adService';
-import type { CreateAdData } from '../../types';
+import type { CreateAdData, AdPhoto } from '../../types';
 
 const propertyTypes = [
   { value: 'apartment', label: 'Квартира' },
@@ -22,6 +24,16 @@ const AdFormPage = () => {
   const isEdit = Boolean(id);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Існуючі фото (отримані з сервера)
+  const [existingPhotos, setExistingPhotos] = useState<AdPhoto[]>([]);
+  // Нові файли для завантаження
+  const [newPhotos, setNewPhotos] = useState<File[]>([]);
+  // Прев'ю нових файлів
+  const [newPreviews, setNewPreviews] = useState<string[]>([]);
+  // Індекс головного фото серед усіх (спочатку старі, потім нові)
+  const [mainPhotoIndex, setMainPhotoIndex] = useState<number>(0);
+  
   const [formData, setFormData] = useState<CreateAdData>({
     title: '',
     description: '',
@@ -34,8 +46,6 @@ const AdFormPage = () => {
     floor: undefined,
     total_floors: undefined,
   });
-  const [photos, setPhotos] = useState<File[]>([]);
-  const [mainPhotoIndex, setMainPhotoIndex] = useState<number>(0);
 
   useEffect(() => {
     if (isEdit && id) {
@@ -62,6 +72,11 @@ const AdFormPage = () => {
         floor: ad.floor,
         total_floors: ad.total_floors,
       });
+      // Зберігаємо існуючі фото
+      setExistingPhotos(ad.photos || []);
+      // Знаходимо індекс головного фото серед існуючих
+      const mainIdx = ad.photos?.findIndex(p => p.is_main) ?? 0;
+      setMainPhotoIndex(mainIdx >= 0 ? mainIdx : 0);
     } catch (err: any) {
       setError('Не вдалося завантажити оголошення');
     }
@@ -74,12 +89,50 @@ const AdFormPage = () => {
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value ? Number(value) : undefined }));
+    const num = value ? Number(value) : undefined;
+    if (num !== undefined && num < 0) return;
+    setFormData(prev => ({ ...prev, [name]: num }));
   };
 
+  // Додавання нових файлів
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setPhotos(Array.from(e.target.files));
+      const files = Array.from(e.target.files);
+      setNewPhotos(prev => [...prev, ...files]);
+      const previews = files.map(file => URL.createObjectURL(file));
+      setNewPreviews(prev => [...prev, ...previews]);
+    }
+  };
+
+  // Видалення нового фото (ще не завантаженого)
+  const removeNewPhoto = (index: number) => {
+    setNewPhotos(prev => prev.filter((_, i) => i !== index));
+    setNewPreviews(prev => {
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+    // Коригуємо головний індекс, якщо видаляємо фото з newPhotos
+    const totalExisting = existingPhotos.length;
+    if (mainPhotoIndex === totalExisting + index) {
+      setMainPhotoIndex(0);
+    } else if (mainPhotoIndex > totalExisting + index) {
+      setMainPhotoIndex(prev => prev - 1);
+    }
+  };
+
+  // Видалення існуючого фото (запит на сервер)
+  const removeExistingPhoto = async (photoId: number, index: number) => {
+    try {
+      await adService.deletePhoto(parseInt(id!), photoId);
+      setExistingPhotos(prev => prev.filter(p => p.photo_id !== photoId));
+      // Коригуємо головний індекс
+      if (mainPhotoIndex === index) {
+        setMainPhotoIndex(0);
+      } else if (mainPhotoIndex > index) {
+        setMainPhotoIndex(prev => prev - 1);
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Помилка видалення фото');
     }
   };
 
@@ -97,11 +150,20 @@ const AdFormPage = () => {
         adId = res.ad_id;
       }
 
-      // Завантаження фото
-      for (let i = 0; i < photos.length; i++) {
-        const isMain = i === mainPhotoIndex;
-        await adService.uploadPhoto(adId, photos[i], isMain);
+      // Завантаження нових фото
+      for (let i = 0; i < newPhotos.length; i++) {
+        const globalIdx = existingPhotos.length + i;
+        const isMain = globalIdx === mainPhotoIndex;
+        await adService.uploadPhoto(adId, newPhotos[i], isMain);
       }
+
+      // Якщо головне фото змінилося серед існуючих, потрібно оновити is_main
+      // Можна додати endpoint для зміни головного фото, але поки що пропустимо
+
+      // Очищаємо preview
+      newPreviews.forEach(url => URL.revokeObjectURL(url));
+      setNewPhotos([]);
+      setNewPreviews([]);
 
       navigate(`/ads/${adId}`);
     } catch (err: any) {
@@ -141,47 +203,136 @@ const AdFormPage = () => {
           <Grid item xs={12} sm={6}>
             <TextField fullWidth label="Ціна, $" name="price" type="number" value={formData.price} onChange={handleNumberChange} required
               inputProps={{ min: 0 }}
-              onKeyDown={(e) => {
-                if (e.key === '-' || e.key === 'e' || e.key === '+') {
-                  e.preventDefault();
-                }
-              }} />
+              onKeyDown={(e) => { if (e.key === '-' || e.key === 'e' || e.key === '+') e.preventDefault(); }} />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Площа, м²" name="area" type="number" value={formData.area || ''} onChange={handleNumberChange} />
+            <TextField fullWidth label="Площа, м²" name="area" type="number" value={formData.area || ''} onChange={handleNumberChange}
+              inputProps={{ min: 0 }}
+              onKeyDown={(e) => { if (e.key === '-' || e.key === 'e' || e.key === '+') e.preventDefault(); }} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <TextField fullWidth label="Кількість кімнат" name="rooms" type="number" value={formData.rooms || ''} onChange={handleNumberChange} />
+            <TextField fullWidth label="Кількість кімнат" name="rooms" type="number" value={formData.rooms || ''} onChange={handleNumberChange}
+              inputProps={{ min: 0 }}
+              onKeyDown={(e) => { if (e.key === '-' || e.key === 'e' || e.key === '+') e.preventDefault(); }} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <TextField fullWidth label="Поверх" name="floor" type="number" value={formData.floor || ''} onChange={handleNumberChange} />
+            <TextField fullWidth label="Поверх" name="floor" type="number" value={formData.floor || ''} onChange={handleNumberChange}
+              inputProps={{ min: 0 }}
+              onKeyDown={(e) => { if (e.key === '-' || e.key === 'e' || e.key === '+') e.preventDefault(); }} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <TextField fullWidth label="Всього поверхів" name="total_floors" type="number" value={formData.total_floors || ''} onChange={handleNumberChange} />
+            <TextField fullWidth label="Всього поверхів" name="total_floors" type="number" value={formData.total_floors || ''} onChange={handleNumberChange}
+              inputProps={{ min: 0 }}
+              onKeyDown={(e) => { if (e.key === '-' || e.key === 'e' || e.key === '+') e.preventDefault(); }} />
           </Grid>
+
+          {/* Блок фото */}
           <Grid item xs={12}>
-            <Button variant="outlined" component="label">
-              Вибрати фото
-              <input type="file" hidden multiple accept="image/*" onChange={handleFileChange} />
-            </Button>
-            {photos.length > 0 && (
-              <Box sx={{ mt: 1 }}>
-                <Typography variant="body2">Виберіть головне фото:</Typography>
-                <Grid container spacing={1}>
-                  {photos.map((file, idx) => (
-                    <Grid item key={idx}>
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt="preview"
-                        style={{ width: 100, height: 100, objectFit: 'cover', border: mainPhotoIndex === idx ? '2px solid blue' : 'none' }}
+            <Typography variant="subtitle1" gutterBottom>Фотографії</Typography>
+            
+            {/* Існуючі фото (тільки при редагуванні) */}
+            {isEdit && existingPhotos.length > 0 && (
+              <>
+                <Typography variant="body2" color="text.secondary" gutterBottom>Поточні фото:</Typography>
+                <Grid container spacing={1} sx={{ mb: 2 }}>
+                  {existingPhotos.map((photo, idx) => (
+                    <Grid item xs={4} sm={3} md={2} key={photo.photo_id}>
+                      <Box
+                        sx={{
+                          position: 'relative',
+                          border: mainPhotoIndex === idx ? '2px solid blue' : '1px solid #ccc',
+                          borderRadius: 1,
+                          overflow: 'hidden',
+                          cursor: 'pointer',
+                        }}
                         onClick={() => setMainPhotoIndex(idx)}
-                      />
+                      >
+                        <img
+                          src={`http://localhost:5000${photo.url}`}
+                          alt=""
+                          style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }}
+                        />
+                        <IconButton
+                          size="small"
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            bgcolor: 'rgba(255,255,255,0.8)',
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeExistingPhoto(photo.photo_id, idx);
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                        {mainPhotoIndex === idx && (
+                          <Chip label="Головне" size="small" sx={{ position: 'absolute', bottom: 0, left: 0, m: 0.5 }} />
+                        )}
+                      </Box>
                     </Grid>
                   ))}
                 </Grid>
-              </Box>
+              </>
             )}
+
+            {/* Нові фото (прев'ю) */}
+            {newPreviews.length > 0 && (
+              <>
+                <Typography variant="body2" color="text.secondary" gutterBottom>Нові фото:</Typography>
+                <Grid container spacing={1} sx={{ mb: 2 }}>
+                  {newPreviews.map((preview, idx) => {
+                    const globalIdx = existingPhotos.length + idx;
+                    return (
+                      <Grid item xs={4} sm={3} md={2} key={`new-${idx}`}>
+                        <Box
+                          sx={{
+                            position: 'relative',
+                            border: mainPhotoIndex === globalIdx ? '2px solid blue' : '1px solid #ccc',
+                            borderRadius: 1,
+                            overflow: 'hidden',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => setMainPhotoIndex(globalIdx)}
+                        >
+                          <img
+                            src={preview}
+                            alt=""
+                            style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }}
+                          />
+                          <IconButton
+                            size="small"
+                            sx={{
+                              position: 'absolute',
+                              top: 0,
+                              right: 0,
+                              bgcolor: 'rgba(255,255,255,0.8)',
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeNewPhoto(idx);
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                          {mainPhotoIndex === globalIdx && (
+                            <Chip label="Головне" size="small" sx={{ position: 'absolute', bottom: 0, left: 0, m: 0.5 }} />
+                          )}
+                        </Box>
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+              </>
+            )}
+
+            <Button variant="outlined" component="label" sx={{ mt: 1 }}>
+              {isEdit ? 'Додати фото' : 'Вибрати фото'}
+              <input type="file" hidden multiple accept="image/*" onChange={handleFileChange} />
+            </Button>
           </Grid>
+
           <Grid item xs={12}>
             <Button type="submit" variant="contained" size="large" disabled={loading}>
               {loading ? <CircularProgress size={24} /> : (isEdit ? 'Зберегти зміни' : 'Опублікувати')}

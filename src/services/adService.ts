@@ -48,4 +48,9 @@ export const adService = {
     });
     return response.data;
   },
+
+  // Видалення фото
+  async deletePhoto(adId: number, photoId: number): Promise<void> {
+    await apiClient.delete(`/ads/${adId}/photos/${photoId}`);
+  },
 };

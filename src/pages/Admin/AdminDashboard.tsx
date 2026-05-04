@@ -233,17 +233,34 @@ const AdminDashboard = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {logs.map(log => (
-                  <TableRow key={log.log_id}>
-                    <TableCell>{log.log_id}</TableCell>
-                    <TableCell>{log.admin_id}</TableCell>
-                    <TableCell>{log.action_type}</TableCell>
-                    <TableCell>{log.target_type}</TableCell>
-                    <TableCell>{log.target_id}</TableCell>
-                    <TableCell>{JSON.stringify(log.details)}</TableCell>
-                    <TableCell>{new Date(log.created_at).toLocaleString()}</TableCell>
-                  </TableRow>
-                ))}
+                {logs.map(log => {
+                  const formatDetails = () => {
+                    const det = log.details;
+                    if (!det) return '-';
+                    
+                    if (log.target_type === 'advertisement') {
+                      const title = det.title || 'без назви';
+                      const reason = det.reason ? ` (причина: ${det.reason})` : '';
+                      return `${title}${reason}`;
+                    }
+                    if (log.target_type === 'user') {
+                      return det.email || 'email невідомий';
+                    }
+                    return JSON.stringify(det);
+                  };
+
+                  return (
+                    <TableRow key={log.log_id}>
+                      <TableCell>{log.log_id}</TableCell>
+                      <TableCell>{log.admin_id}</TableCell>
+                      <TableCell>{log.action_type}</TableCell>
+                      <TableCell>{log.target_type}</TableCell>
+                      <TableCell>{log.target_id}</TableCell>
+                      <TableCell>{formatDetails()}</TableCell>
+                      <TableCell>{new Date(log.created_at).toLocaleString()}</TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>
