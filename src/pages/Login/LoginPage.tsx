@@ -51,6 +51,7 @@ const LoginPage = () => {
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="username"
             name="email"
+            InputLabelProps={{ shrink: true }}
           />
           <TextField
             label="Пароль"
@@ -62,6 +63,7 @@ const LoginPage = () => {
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
             name="password"
+            InputLabelProps={{ shrink: true }}
           />
           <Button
             type="submit"
