@@ -25,16 +25,13 @@ function App() {
 
             <Route element={<PrivateRoute />}>
               <Route path="profile" element={<ProfilePage />} />
+              <Route path="ads/create" element={<AdFormPage />} />
+              <Route path="ads/:id/edit" element={<AdFormPage />} />
             </Route>
 
             <Route element={<AdminRoute />}>
               <Route path="admin/*" element={<AdminDashboard />} />
             </Route>
-          </Route>
-
-          <Route element={<PrivateRoute />}>
-            <Route path="ads/create" element={<AdFormPage />} />
-            <Route path="ads/:id/edit" element={<AdFormPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
