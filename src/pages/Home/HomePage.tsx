@@ -120,7 +120,7 @@ const HomePage = () => {
             <TextField select fullWidth label="Кількість кімнат" value={filters.rooms || ''}
               onChange={(e) => handleFilterChange('rooms', e.target.value ? Number(e.target.value) : undefined)}>
               <MenuItem value="">Будь-яка</MenuItem>
-              {[1,2,3,4,5].map(n => <MenuItem key={n} value={n}>{n}</MenuItem>)}
+              {[1, 2, 3, 4, 5].map(n => <MenuItem key={n} value={n}>{n}</MenuItem>)}
             </TextField>
           </Grid>
           <Grid item xs={12} md={3}>
@@ -211,8 +211,16 @@ const HomePage = () => {
         </Box>
 
         {/* Права панель – карта (не змінено код MapView, лише контейнер) */}
-        <Box sx={{ width: '45%', position: 'sticky', top: 16 }}>
-          <MapView />
+        <Box sx={{
+          width: '45%',
+          position: 'sticky',
+          top: 16,
+          height: 'calc(100vh - 350px)', 
+          borderRadius: 2,
+          overflow: 'hidden',
+          boxShadow: 3,
+        }}>
+          <MapView ads={ads} />
         </Box>
       </Box>
     </Container>

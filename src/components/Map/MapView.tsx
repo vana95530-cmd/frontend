@@ -1,11 +1,9 @@
-import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import apiClient from '../../api/client';
-import { CircularProgress, Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 
-// Виправлення стандартних іконок Leaflet (без цього маркери не відображаються)
+// Фікс іконок (залишаємо без змін)
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
@@ -15,13 +13,6 @@ L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
-
-
-L.Icon.Default.mergeOptions({
-  iconUrl,
-  iconRetinaUrl,
-  shadowUrl,
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -29,48 +20,28 @@ L.Icon.Default.mergeOptions({
   shadowSize: [41, 41],
 });
 
+// Оновлений інтерфейс з опціональними полями
 interface AdLocation {
   ad_id: number;
   title: string;
   price: number;
-  area: number | null;
-  rooms: number | null;
+  area?: number | null;      // тепер не обов’язкове
+  rooms?: number | null;     // тепер не обов’язкове
   district: string;
-  latitude: number;
-  longitude: number;
+  latitude?: number | null;  // може бути відсутнім
+  longitude?: number | null; // може бути відсутнім
   property_type: string;
 }
 
-const MapView = () => {
-  const [ads, setAds] = useState<AdLocation[]>([]);
-  const [loading, setLoading] = useState(true);
+interface MapViewProps {
+  ads: AdLocation[];
+}
 
-  useEffect(() => {
-    const fetchAds = async () => {
-      try {
-        const response = await apiClient.get('/map/ads');
-        setAds(response.data);
-      } catch (error) {
-        console.error('Помилка завантаження даних для карти:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAds();
-  }, []);
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
+const MapView: React.FC<MapViewProps> = ({ ads }) => {
   return (
-    <Box sx={{ height: 500, width: '100%', borderRadius: 2, overflow: 'hidden', mt: 3 }}>
+    <Box sx={{ height: '100%', width: '100%', borderRadius: 2, overflow: 'hidden' }}>
       <MapContainer
-        center={[49.4449, 32.0581]} // центр Черкас
+        center={[49.4449, 32.0581]}
         zoom={13}
         style={{ height: '100%', width: '100%' }}
       >
@@ -78,17 +49,20 @@ const MapView = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {ads.map((ad) => (
-          <Marker key={ad.ad_id} position={[ad.latitude, ad.longitude]}>
-            <Popup>
-              <Typography variant="subtitle2" fontWeight="bold">{ad.title}</Typography>
-              <Typography variant="body2">{ad.price.toLocaleString()} грн</Typography>
-              {ad.area && <Typography variant="body2">{ad.area} м²</Typography>}
-              <Typography variant="body2">Кімнат: {ad.rooms}</Typography>
-              <Typography variant="body2">Район: {ad.district}</Typography>
-            </Popup>
-          </Marker>
-        ))}
+        {ads
+          .filter(ad => ad.latitude != null && ad.longitude != null)
+          .map((ad) => (
+            <Marker key={ad.ad_id} position={[ad.latitude!, ad.longitude!]}>
+              <Popup>
+                <b>{ad.title}</b><br />
+                ${ad.price.toLocaleString()}<br />
+                {ad.area != null && `${ad.area} м², `}
+                {ad.rooms != null && `${ad.rooms} кімн.`}
+                <br />
+                {ad.district}
+              </Popup>
+            </Marker>
+          ))}
       </MapContainer>
     </Box>
   );

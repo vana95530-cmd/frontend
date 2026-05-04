@@ -73,6 +73,8 @@ export interface Advertisement {
   title: string;
   description: string;
   property_type: 'apartment' | 'house' | 'commercial' | 'land';
+  latitude?: number;
+  longitude?: number;
   district: string;
   address?: string;
   price: number;
