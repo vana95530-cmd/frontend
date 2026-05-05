@@ -8,6 +8,7 @@ import { adService } from '../../services/adService';
 import type { Advertisement, AdFilterParams } from '../../types';
 import { userService } from '../../services/userService';
 import MapView from '../../components/Map/MapView';
+import FilterPanel from '../../components/FilterPanel/FilterPanel';
 
 const districts = ['Центр', 'Придніпровський', 'Соснівський', 'Митниця', 'Дахнівка'];
 const propertyTypes = [
@@ -134,6 +135,24 @@ const HomePage = () => {
         Нерухомість у Черкасах
       </Typography>
 
+      <FilterPanel
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onPriceRangeChange={(min, max) => {
+          setPriceRange([min, max]);
+          handleFilterChange('min_price', min);
+          handleFilterChange('max_price', max);
+        }}
+        onAreaRangeChange={(min, max) => {
+          setAreaRange([min, max]);
+          handleFilterChange('min_area', min);
+          handleFilterChange('max_area', max);
+        }}
+        onClear={clearFilters}
+        priceRange={priceRange}
+        areaRange={areaRange}
+      />
+
       <Box sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={6} md={2}>
@@ -246,7 +265,7 @@ const HomePage = () => {
           width: '45%',
           position: 'sticky',
           top: 16,
-          height: 'calc(100vh - 350px)', 
+          height: 'calc(100vh - 350px)',
           borderRadius: 2,
           overflow: 'hidden',
           boxShadow: 3,
