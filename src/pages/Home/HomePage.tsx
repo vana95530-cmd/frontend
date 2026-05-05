@@ -153,59 +153,6 @@ const HomePage = () => {
         areaRange={areaRange}
       />
 
-      <Box sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={6} md={2}>
-            <TextField select fullWidth label="Тип нерухомості" value={filters.property_type}
-              onChange={(e) => handleFilterChange('property_type', e.target.value)}>
-              <MenuItem value="">Всі</MenuItem>
-              {propertyTypes.map(opt => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6} md={2}>
-            <TextField select fullWidth label="Район" value={filters.district}
-              onChange={(e) => handleFilterChange('district', e.target.value)}>
-              <MenuItem value="">Всі</MenuItem>
-              {districts.map(d => <MenuItem key={d} value={d}>{d}</MenuItem>)}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6} md={2}>
-            <TextField select fullWidth label="Кількість кімнат" value={filters.rooms || ''}
-              onChange={(e) => handleFilterChange('rooms', e.target.value ? Number(e.target.value) : undefined)}>
-              <MenuItem value="">Будь-яка</MenuItem>
-              {[1, 2, 3, 4, 5].map(n => <MenuItem key={n} value={n}>{n}</MenuItem>)}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Typography gutterBottom>Ціна, $</Typography>
-            <Slider value={priceRange} onChange={handlePriceChange} valueLabelDisplay="auto" min={0} max={200000} step={1000} />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <TextField size="small" value={priceRange[0]}
-                onChange={(e) => { const val = Number(e.target.value); setPriceRange([val, priceRange[1]]); handleFilterChange('min_price', val); }}
-                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
-              <TextField size="small" value={priceRange[1]}
-                onChange={(e) => { const val = Number(e.target.value); setPriceRange([priceRange[0], val]); handleFilterChange('max_price', val); }}
-                InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Typography gutterBottom>Площа, м²</Typography>
-            <Slider value={areaRange} onChange={handleAreaChange} valueLabelDisplay="auto" min={0} max={200} step={5} />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <TextField size="small" value={areaRange[0]}
-                onChange={(e) => { const val = Number(e.target.value); setAreaRange([val, areaRange[1]]); handleFilterChange('min_area', val); }}
-                InputProps={{ endAdornment: <InputAdornment position="end">м²</InputAdornment> }} />
-              <TextField size="small" value={areaRange[1]}
-                onChange={(e) => { const val = Number(e.target.value); setAreaRange([areaRange[0], val]); handleFilterChange('max_area', val); }}
-                InputProps={{ endAdornment: <InputAdornment position="end">м²</InputAdornment> }} />
-            </Box>
-          </Grid>
-          <Grid item xs={12}>
-            <Button variant="outlined" onClick={clearFilters}>Очистити фільтри</Button>
-          </Grid>
-        </Grid>
-      </Box>
-
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
         <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
           {loading ? (
