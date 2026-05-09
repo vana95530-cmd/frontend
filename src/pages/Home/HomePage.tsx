@@ -10,14 +10,6 @@ import { userService } from '../../services/userService';
 import MapView from '../../components/Map/MapView';
 import FilterPanel from '../../components/FilterPanel/FilterPanel';
 
-const districts = ['Центр', 'Придніпровський', 'Соснівський', 'Митниця', 'Дахнівка'];
-const propertyTypes = [
-  { value: 'apartment', label: 'Квартира' },
-  { value: 'house', label: 'Будинок' },
-  { value: 'commercial', label: 'Комерційна' },
-  { value: 'land', label: 'Земля' },
-];
-
 const HomePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -153,8 +145,10 @@ const HomePage = () => {
         areaRange={areaRange}
       />
 
-      <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-        <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
+      {/* Основний контент: список + карта */}
+      <Grid container spacing={2}>
+        {/* Ліва частина – список оголошень (на мобільних займає всю ширину) */}
+        <Grid item xs={12} md={7}>
           {loading ? (
             <Box display="flex" justifyContent="center" my={4}><CircularProgress /></Box>
           ) : error ? (
@@ -183,7 +177,10 @@ const HomePage = () => {
                                 {ad.title}
                               </Typography>
                               <Typography variant="body2" color="text.secondary">
-                                {ad.property_type === 'apartment' ? 'Квартира' : ad.property_type} • {ad.district}
+                                {ad.property_type === 'apartment' ? 'Квартира' :
+                                  ad.property_type === 'house' ? 'Будинок' :
+                                    ad.property_type === 'commercial' ? 'Комерційна нерухомість' :
+                                      ad.property_type} • {ad.district}
                               </Typography>
                               <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
                                 ${ad.price.toLocaleString()}
@@ -206,20 +203,22 @@ const HomePage = () => {
               )}
             </>
           )}
-        </Box>
+        </Grid>
 
-        <Box sx={{
-          width: '45%',
-          position: 'sticky',
-          top: 16,
-          height: 'calc(100vh - 350px)',
-          borderRadius: 2,
-          overflow: 'hidden',
-          boxShadow: 3,
-        }}>
-          <MapView ads={ads} />
-        </Box>
-      </Box>
+        {/* Права частина – карта (на мобільних зменшується) */}
+        <Grid item xs={12} md={5}>
+          <Box sx={{
+            position: { md: 'sticky' },
+            top: 16,
+            height: { xs: '50vh', md: 'calc(100vh - 160px)' },
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: 3,
+          }}>
+            <MapView ads={ads} />
+          </Box>
+        </Grid>
+      </Grid>
     </Container>
   );
 };

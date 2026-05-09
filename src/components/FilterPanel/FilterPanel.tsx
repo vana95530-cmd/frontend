@@ -10,8 +10,7 @@ const districts = ['Центр', 'Придніпровський', 'Соснів
 const propertyTypes = [
   { value: 'apartment', label: 'Квартири' },
   { value: 'house', label: 'Будинки' },
-  { value: 'commercial', label: 'Комерція' },
-  { value: 'land', label: 'Земля' },
+  { value: 'commercial', label: 'Комерційна нерухомість' },
 ];
 
 interface FilterPanelProps {

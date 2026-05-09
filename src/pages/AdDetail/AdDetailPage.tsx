@@ -94,7 +94,12 @@ const AdDetailPage = () => {
           <Divider sx={{ my: 2 }} />
           <Typography variant="body1" paragraph>{ad.description}</Typography>
           <Grid container spacing={1}>
-            <Grid item xs={6}><Typography><strong>Тип:</strong> {ad.property_type}</Typography></Grid>
+            <Grid item xs={6}><Typography><strong>Тип:</strong> {ad.property_type === 'apartment' ? 'Квартира' :
+              ad.property_type === 'house' ? 'Будинок' :
+                ad.property_type === 'commercial' ? 'Комерційна нерухомість' :
+                  ad.property_type}
+            </Typography>
+            </Grid>
             <Grid item xs={6}><Typography><strong>Район:</strong> {ad.district}</Typography></Grid>
             {ad.address && <Grid item xs={12}><Typography><strong>Адреса:</strong> {ad.address}</Typography></Grid>}
             <Grid item xs={6}><Typography><strong>Площа:</strong> {ad.area} м²</Typography></Grid>

@@ -12,8 +12,7 @@ import type { CreateAdData, AdPhoto } from '../../types';
 const propertyTypes = [
   { value: 'apartment', label: 'Квартира' },
   { value: 'house', label: 'Будинок' },
-  { value: 'commercial', label: 'Комерційна' },
-  { value: 'land', label: 'Земля' },
+  { value: 'commercial', label: 'Комерційна нерухомість' },
 ];
 const districts = ['Центр', 'Придніпровський', 'Соснівський', 'Митниця', 'Дахнівка'];
 
