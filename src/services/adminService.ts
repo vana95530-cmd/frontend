@@ -44,8 +44,11 @@ export const adminService = {
     const response = await apiClient.put(`/admin/ads/${adId}/reject`, { reason });
     return response.data;
   },
-  async getUsers(): Promise<UserForAdmin[]> {
-    const response = await apiClient.get('/admin/users');
+  async getUsers(search?: string, status?: string): Promise<UserForAdmin[]> {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (status) params.append('status', status);
+    const response = await apiClient.get(`/admin/users?${params.toString()}`);
     return response.data;
   },
   async blockUser(userId: number) {

@@ -3,7 +3,8 @@ import {
   Container, Typography, Tabs, Tab, Box, CircularProgress, Alert,
   Card, CardContent, CardActions, Button, Chip, Grid,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Dialog, DialogTitle, DialogContent, DialogActions, TextField
+  Paper, Dialog, DialogTitle, DialogContent, DialogActions, TextField,
+  MenuItem
 } from '@mui/material';
 import { adminService } from '../../services/adminService';
 import type { PendingAd, UserForAdmin, AdminLogEntry } from '../../services/adminService';
@@ -37,12 +38,16 @@ const AdminDashboard = () => {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectAdId, setRejectAdId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [userSearch, setUserSearch] = useState('');
+  const [userStatus, setUserStatus] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [statusInput, setStatusInput] = useState('');
 
   useEffect(() => {
     if (tabValue === 0) fetchPendingAds();
     else if (tabValue === 1) fetchUsers();
     else if (tabValue === 2) fetchLogs();
-  }, [tabValue]);
+  }, [tabValue, userSearch, userStatus]); 
 
   const fetchPendingAds = async () => {
     setLoadingAds(true);
@@ -58,13 +63,17 @@ const AdminDashboard = () => {
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
-      setUsers(await adminService.getUsers());
+      setUsers(await adminService.getUsers(userSearch, userStatus));
     } catch (err: any) {
       setError(err.response?.data?.error || 'Помилка');
     } finally {
       setLoadingUsers(false);
     }
   };
+
+  useEffect(() => {
+    if (tabValue === 1) fetchUsers();
+  }, [tabValue, userSearch, userStatus]);
 
   const fetchLogs = async () => {
     setLoadingLogs(true);
@@ -119,6 +128,11 @@ const AdminDashboard = () => {
     } catch (err: any) {
       alert(err.response?.data?.error || 'Помилка');
     }
+  };
+
+  const handleUserSearch = () => {
+    setUserSearch(searchInput);
+    setUserStatus(statusInput);
   };
 
   if (error) return <Alert severity="error">{error}</Alert>;
@@ -179,6 +193,27 @@ const AdminDashboard = () => {
       <TabPanel value={tabValue} index={1}>
         {loadingUsers ? <CircularProgress /> : (
           <TableContainer component={Paper}>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <TextField
+                label="Пошук за email або ім'ям"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                size="small"
+              />
+              <TextField
+                select
+                label="Статус"
+                value={statusInput}
+                onChange={(e) => setStatusInput(e.target.value)}
+                size="small"
+                sx={{ minWidth: 150 }}
+              >
+                <MenuItem value="">Всі</MenuItem>
+                <MenuItem value="active">Активні</MenuItem>
+                <MenuItem value="blocked">Заблоковані</MenuItem>
+              </TextField>
+              <Button variant="contained" onClick={handleUserSearch}>Пошук</Button>
+            </Box>
             <Table>
               <TableHead>
                 <TableRow>
@@ -237,7 +272,7 @@ const AdminDashboard = () => {
                   const formatDetails = () => {
                     const det = log.details;
                     if (!det) return '-';
-                    
+
                     if (log.target_type === 'advertisement') {
                       const title = det.title || 'без назви';
                       const reason = det.reason ? ` (причина: ${det.reason})` : '';
