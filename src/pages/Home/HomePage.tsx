@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
   Container, Card, Grid, CardMedia, CardContent, Typography, CardActionArea,
-  TextField, MenuItem, Button, Box, Slider, InputAdornment, Pagination, CircularProgress, Alert
+  TextField, MenuItem, Button, Box, Slider, InputAdornment, Pagination, CircularProgress, Alert,
+  IconButton
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { adService } from '../../services/adService';
@@ -9,6 +10,8 @@ import type { Advertisement, AdFilterParams } from '../../types';
 import { userService } from '../../services/userService';
 import MapView from '../../components/Map/MapView';
 import FilterPanel from '../../components/FilterPanel/FilterPanel';
+import { Favorite, FavoriteBorder } from '@mui/icons-material';
+import { useAuth } from '../../context/AuthContext';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -29,6 +32,8 @@ const HomePage = () => {
   const [areaRange, setAreaRange] = useState<number[]>([0, 200]);
   const [page, setPage] = useState(1);
   const itemsPerPage = 9;
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
+  const { user } = useAuth(); // якщо ще немає в компоненті – додайте
 
   // Обробка параметрів пошуку з історії
   useEffect(() => {
@@ -67,6 +72,14 @@ const HomePage = () => {
   useEffect(() => {
     fetchAds();
   }, [filters]);
+
+  useEffect(() => {
+    if (user) {
+      userService.getFavorites().then(favs => {
+        setFavorites(new Set(favs.map((f: any) => f.ad_id)));
+      }).catch(console.error);
+    }
+  }, [user]);
 
   const fetchAds = async () => {
     setLoading(true);
@@ -116,6 +129,26 @@ const HomePage = () => {
     setPriceRange([0, 200000]);
     setAreaRange([0, 200]);
     setPage(1);
+  };
+
+  const toggleFavorite = async (adId: number) => {
+    if (!user) return;
+    const isFav = favorites.has(adId);
+    try {
+      if (isFav) {
+        await userService.removeFromFavorites(adId);
+        setFavorites(prev => {
+          const next = new Set(prev);
+          next.delete(adId);
+          return next;
+        });
+      } else {
+        await userService.addToFavorites(adId);
+        setFavorites(prev => new Set(prev).add(adId));
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Помилка');
+    }
   };
 
   const paginatedAds = ads.slice((page - 1) * itemsPerPage, page * itemsPerPage);
@@ -171,6 +204,7 @@ const HomePage = () => {
                               alt={ad.title}
                             />
                           </Grid>
+
                           <Grid item xs={8}>
                             <CardContent>
                               <Typography gutterBottom variant="h6" component="div">
@@ -191,6 +225,15 @@ const HomePage = () => {
                             </CardContent>
                           </Grid>
                         </Grid>
+                        <IconButton
+                          sx={{ position: 'absolute', top: 8, right: 8 }}
+                          onClick={(e) => {
+                            e.stopPropagation(); // щоб не спрацював перехід на оголошення
+                            toggleFavorite(ad.ad_id);
+                          }}
+                        >
+                          {favorites.has(ad.ad_id) ? <Favorite color="error" /> : <FavoriteBorder />}
+                        </IconButton>
                       </CardActionArea>
                     </Card>
                   </Grid>

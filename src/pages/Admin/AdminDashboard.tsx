@@ -48,6 +48,7 @@ const AdminDashboard = () => {
     else if (tabValue === 1) fetchUsers();
     else if (tabValue === 2) fetchLogs();
   }, [tabValue, userSearch, userStatus]); 
+  
 
   const fetchPendingAds = async () => {
     setLoadingAds(true);
