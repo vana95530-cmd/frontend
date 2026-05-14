@@ -31,6 +31,16 @@ export interface AdminLogEntry {
   created_at: string;
 }
 
+export interface ReportItem {
+  report_id: number;
+  reporter_id: number;
+  target_type: string;
+  target_id: number;
+  reason: string;
+  status: string;
+  created_at: string;
+}
+
 export const adminService = {
   async getPendingAds(): Promise<PendingAd[]> {
     const response = await apiClient.get('/admin/ads/pending');
@@ -63,4 +73,8 @@ export const adminService = {
     const response = await apiClient.get('/admin/logs');
     return response.data;
   },
+  async getReports(): Promise<ReportItem[]> {
+    const response = await apiClient.get('/admin/reports');
+    return response.data;
+  }
 };

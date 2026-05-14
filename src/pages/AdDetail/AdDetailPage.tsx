@@ -4,7 +4,7 @@ import {
   Container, Typography, Box, Grid, Button, Card, CardMedia, Chip, Divider, Alert, CircularProgress,
   ImageList, ImageListItem
 } from '@mui/material';
-import { adService } from '../../services/adService';
+import { adService, reportService } from '../../services/adService';
 import { useAuth } from '../../context/AuthContext';
 import type { Advertisement } from '../../types';
 import ChatWidget from '../../components/ChatWidget/ChatWidget';
@@ -132,6 +132,23 @@ const AdDetailPage = () => {
               </Button>
             )}
           </Box>
+          {user && (
+            <Button
+              variant="outlined"
+              color="warning"
+              onClick={() => {
+                const reason = prompt('Вкажіть причину скарги:');
+                if (reason) {
+                  reportService.submitReport('advertisement', ad.ad_id, reason)
+                    .then(() => alert('Скаргу надіслано'))
+                    .catch(err => alert(err.response?.data?.error || 'Помилка'));
+                }
+              }}
+              sx={{ mt: 2 }}
+            >
+              Поскаржитися на оголошення
+            </Button>
+          )}
         </Grid>
       </Grid>
       {chatOpen && ad && (

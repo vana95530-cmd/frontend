@@ -53,4 +53,11 @@ export const adService = {
   async deletePhoto(adId: number, photoId: number): Promise<void> {
     await apiClient.delete(`/ads/${adId}/photos/${photoId}`);
   },
+  
+};
+
+export const reportService = {
+  async submitReport(targetType: string, targetId: number, reason: string) {
+    await apiClient.post('/reports', { target_type: targetType, target_id: targetId, reason });
+  },
 };

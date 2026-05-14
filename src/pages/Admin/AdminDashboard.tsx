@@ -16,6 +16,16 @@ interface TabPanelProps {
   value: number;
 }
 
+interface ReportItem {
+  report_id: number;
+  reporter_id: number;
+  target_type: string;
+  target_id: number;
+  reason: string;
+  status: string;
+  created_at: string;
+}
+
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
   return (
@@ -42,13 +52,16 @@ const AdminDashboard = () => {
   const [userStatus, setUserStatus] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [statusInput, setStatusInput] = useState('');
+  const [reports, setReports] = useState<ReportItem[]>([]);
+  const [loadingReports, setLoadingReports] = useState(false);
 
   useEffect(() => {
     if (tabValue === 0) fetchPendingAds();
     else if (tabValue === 1) fetchUsers();
     else if (tabValue === 2) fetchLogs();
-  }, [tabValue, userSearch, userStatus]); 
-  
+    else if (tabValue === 3) fetchReports();
+  }, [tabValue, userSearch, userStatus]);
+
 
   const fetchPendingAds = async () => {
     setLoadingAds(true);
@@ -136,6 +149,17 @@ const AdminDashboard = () => {
     setUserStatus(statusInput);
   };
 
+  const fetchReports = async () => {
+    setLoadingReports(true);
+    try {
+      setReports(await adminService.getReports());
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Помилка завантаження скарг');
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
   if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
@@ -146,6 +170,7 @@ const AdminDashboard = () => {
           <Tab label="Модерація оголошень" />
           <Tab label="Користувачі" />
           <Tab label="Журнал дій" />
+          <Tab label="Скарги" />
         </Tabs>
       </Box>
 
@@ -297,6 +322,49 @@ const AdminDashboard = () => {
                     </TableRow>
                   );
                 })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </TabPanel>
+      <TabPanel value={tabValue} index={3}>
+        {loadingReports ? <CircularProgress /> : (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Тип цілі</TableCell>
+                  <TableCell>ID цілі</TableCell>
+                  <TableCell>Причина</TableCell>
+                  <TableCell>Статус</TableCell>
+                  <TableCell>Дата</TableCell>
+                  <TableCell>Дії</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {reports.map(report => (
+                  <TableRow key={report.report_id}>
+                    <TableCell>{report.report_id}</TableCell>
+                    <TableCell>{report.target_type === 'advertisement' ? 'Оголошення' : 'Користувач'}</TableCell>
+                    <TableCell>{report.target_id}</TableCell>
+                    <TableCell>{report.reason}</TableCell>
+                    <TableCell>
+                      <Chip label={report.status} color={report.status === 'pending' ? 'warning' : report.status === 'reviewed' ? 'info' : 'success'} size="small" />
+                    </TableCell>
+                    <TableCell>{new Date(report.created_at).toLocaleString()}</TableCell>
+                    <TableCell>
+                      {report.target_type === 'advertisement' && (
+                        <Button
+                          size="small"
+                          onClick={() => navigate(`/ads/${report.target_id}`)}
+                        >
+                          Переглянути
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
