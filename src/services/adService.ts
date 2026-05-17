@@ -1,5 +1,6 @@
 import apiClient from '../api/client';
 import type { Advertisement, AdFilterParams, CreateAdData } from '../types';
+import type { Comment } from '../types';
 
 export const adService = {
   // Отримання списку активних оголошень із фільтрацією
@@ -53,11 +54,32 @@ export const adService = {
   async deletePhoto(adId: number, photoId: number): Promise<void> {
     await apiClient.delete(`/ads/${adId}/photos/${photoId}`);
   },
-  
+
 };
 
 export const reportService = {
   async submitReport(targetType: string, targetId: number, reason: string) {
     await apiClient.post('/reports', { target_type: targetType, target_id: targetId, reason });
   },
+};
+
+export const commentService = {
+  async getComments(adId: number): Promise<Comment[]> {
+    const response = await apiClient.get<Comment[]>(`/ads/${adId}/comments`);
+    return response.data;
+  },
+  async createComment(adId: number, content: string): Promise<Comment> {
+    const response = await apiClient.post(`/ads/${adId}/comments`, { content });
+    return response.data;
+  },
+  async deleteComment(commentId: number): Promise<void> {
+    await apiClient.delete(`/comments/${commentId}`);
+  },
+  async closeComment(commentId: number): Promise<void> {
+    await apiClient.put(`/comments/${commentId}/close`);
+  },
+  async toggleLike(commentId: number): Promise<{ liked: boolean }> {
+    const response = await apiClient.post(`/comments/${commentId}/like`);
+    return response.data;
+  }
 };

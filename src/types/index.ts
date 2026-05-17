@@ -142,3 +142,14 @@ export interface AdPhoto {
   url: string;
   is_main: boolean;
 }
+
+export interface Comment {
+  comment_id: number;
+  ad_id: number;
+  user_id: number;
+  author_name: string;
+  content: string;
+  is_closed: boolean;
+  likes_count: number;
+  created_at: string;
+}

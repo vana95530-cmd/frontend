@@ -8,6 +8,7 @@ import { adService, reportService } from '../../services/adService';
 import { useAuth } from '../../context/AuthContext';
 import type { Advertisement } from '../../types';
 import ChatWidget from '../../components/ChatWidget/ChatWidget';
+import CommentsSection from '../../components/Comments/CommentsSection';
 
 const AdDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -149,6 +150,9 @@ const AdDetailPage = () => {
               Поскаржитися на оголошення
             </Button>
           )}
+        </Grid>
+        <Grid item xs={12}>
+          <CommentsSection adId={ad.ad_id} />
         </Grid>
       </Grid>
       {chatOpen && ad && (
