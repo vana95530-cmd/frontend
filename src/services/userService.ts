@@ -45,4 +45,17 @@ export const userService = {
   async removeFromFavorites(adId: number) {
     await apiClient.delete(`/user/favorites/${adId}`);
   },
+
+  async getDeletedAds(): Promise<Advertisement[]> {
+    const response = await apiClient.get('/user/ads/deleted');
+    return response.data;
+  },
+
+  async restoreAd(adId: number) {
+    await apiClient.put(`/user/ads/${adId}/restore`);
+  },
+  
+  async permanentDelete(adId: number) {
+    await apiClient.delete(`/user/ads/${adId}/permanent`);
+  },
 };

@@ -45,7 +45,11 @@ const AdDetailPage = () => {
     if (!ad || !window.confirm('Ви впевнені, що хочете видалити оголошення?')) return;
     try {
       await adService.deleteAd(ad.ad_id);
-      navigate('/profile');
+      if (isAdmin && !isOwner) {
+        navigate('/');
+      } else {
+        navigate('/profile');
+      }
     } catch (err: any) {
       alert(err.response?.data?.error || 'Помилка видалення');
     }

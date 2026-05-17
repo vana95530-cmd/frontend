@@ -69,9 +69,10 @@ export interface Advertisement {
   rooms?: number;
   floor?: number;
   total_floors?: number;
-  status: 'pending' | 'active' | 'rejected' | 'sold';
+  status: 'pending' | 'active' | 'rejected' | 'sold' | 'deleted';
   created_at: string;
   updated_at?: string;
+  deleted_at?: string;
   author?: {
     user_id: number;
     full_name: string;

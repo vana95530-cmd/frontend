@@ -53,6 +53,8 @@ const ProfilePage = () => {
   const [activeChatAdId, setActiveChatAdId] = useState<number>(0);
   const [activeChatName, setActiveChatName] = useState<string>('');
   const [chatWidgetOpen, setChatWidgetOpen] = useState(false);
+  const [deletedAds, setDeletedAds] = useState<Advertisement[]>([]);
+  const [loadingDeleted, setLoadingDeleted] = useState(false);
 
   const fetchChats = async () => {
     setLoadingChats(true);
@@ -71,6 +73,7 @@ const ProfilePage = () => {
     if (tabValue === 1) fetchSearchHistory();
     if (tabValue === 2) fetchFavorites();
     if (tabValue === 4) fetchChats();
+    if (tabValue === 5) fetchDeletedAds();
   }, [tabValue]);
 
   const fetchMyAds = async () => {
@@ -208,6 +211,37 @@ const ProfilePage = () => {
 
   };
 
+  const fetchDeletedAds = async () => {
+    setLoadingDeleted(true);
+    try {
+      const ads = await userService.getDeletedAds();
+      setDeletedAds(ads);
+    } catch (err: any) {
+      console.error(err);
+    } finally {
+      setLoadingDeleted(false);
+    }
+  };
+
+  const handleRestore = async (adId: number) => {
+    try {
+      await userService.restoreAd(adId);
+      setDeletedAds(prev => prev.filter(ad => ad.ad_id !== adId));
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Помилка відновлення');
+    }
+  };
+
+  const handlePermanentDelete = async (adId: number) => {
+    if (!window.confirm('Остаточно видалити оголошення? Ця дія незворотна.')) return;
+    try {
+      await userService.permanentDelete(adId);
+      setDeletedAds(prev => prev.filter(ad => ad.ad_id !== adId));
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Помилка видалення');
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -220,6 +254,7 @@ const ProfilePage = () => {
           <Tab label="Обране" />
           <Tab label="Налаштування" />
           <Tab label="Повідомлення" />
+          <Tab label="Видалені" />
         </Tabs>
       </Box>
 
@@ -344,6 +379,34 @@ const ProfilePage = () => {
               ))
             )}
           </>
+        )}
+      </TabPanel>
+      <TabPanel value={tabValue} index={5}>
+        {loadingDeleted ? <CircularProgress /> : (
+          <Grid container spacing={2}>
+            {deletedAds.length === 0 ? (
+              <Typography>Немає видалених оголошень</Typography>
+            ) : (
+              deletedAds.map(ad => (
+                <Grid item xs={12} sm={6} md={4} key={ad.ad_id}>
+                  <Card>
+                    <CardContent>
+                      <Typography variant="h6">{ad.title}</Typography>
+                      <Chip label="Видалене" size="small" color="default" />
+                      <Typography>${ad.price}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Видалено: {new Date(ad.deleted_at || ad.created_at).toLocaleString()}
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Button size="small" onClick={() => handleRestore(ad.ad_id)}>Відновити</Button>
+                      <Button size="small" color="error" onClick={() => handlePermanentDelete(ad.ad_id)}>Видалити остаточно</Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))
+            )}
+          </Grid>
         )}
       </TabPanel>
       {chatWidgetOpen && (
